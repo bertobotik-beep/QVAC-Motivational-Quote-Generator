@@ -70,6 +70,10 @@ export async function generate(modelId, situation) {
     .replace(/^["'“]|["'”]$/g, "")
     .trim();
 
+  // Fall back to a deterministic, guaranteed-relevant quote whenever the
+  // model refused, rambled, or produced text with no keyword overlap with
+  // the user's stated situation — this keeps every quote genuinely grounded
+  // even if the on-device model produces a generic or off-topic completion.
   const quote = looksUnusable(text) || !isGrounded(text, situation) ? FALLBACK(situation) : text;
   return { quote };
 }

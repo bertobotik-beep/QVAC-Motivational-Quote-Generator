@@ -35,8 +35,12 @@ function isGrounded(text, situation) {
   return words.some((w) => lower.includes(w));
 }
 
+// Kept as a parenthetical aside rather than grammatically embedded in the
+// sentence, since the situation can be a short phrase OR a full sentence —
+// embedding it as a noun phrase (the old template did this) reads broken
+// when the user describes their situation as a complete sentence.
 const FALLBACK = (situation) =>
-  `Every step you take toward "${situation}" is proof you haven't given up — keep going.`;
+  `Whatever you're up against right now — "${situation}" — you haven't given up, and that's what matters most. Keep going.`;
 
 export async function generate(modelId, situation) {
   const run = completion({

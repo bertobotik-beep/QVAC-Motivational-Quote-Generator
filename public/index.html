@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QVAC Motivational Quote Generator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #eef2ff 0%, #dbe4ff 100%);
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #1e2749;
+    display: flex;
+    justify-content: center;
+    padding: 46px 20px;
+  }
+  .wrap { width: 100%; max-width: 520px; text-align: center; }
+  .icon { font-size: 2rem; margin-bottom: 4px; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; color: #3949ab; font-weight: 800; }
+  .subtitle { color: #5b6499; margin-bottom: 24px; font-size: 0.9rem; }
+  .card {
+    background: #ffffff;
+    border: 2px solid #c5cdf5;
+    border-radius: 20px;
+    padding: 30px 26px;
+  }
+  textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid #c5cdf5;
+    background: #fff;
+    color: #1e2749;
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 16px;
+    resize: vertical;
+    min-height: 80px;
+  }
+  button.action {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    background: #3949ab;
+    color: #fff;
+    box-shadow: 0 5px 0 #262f7a;
+  }
+  button.action:active { transform: translateY(3px); box-shadow: 0 2px 0 #262f7a; }
+  button.action:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status { margin-top: 14px; font-size: 0.85rem; color: #5b6499; min-height: 1.2em; }
+  .result-body {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin: 20px 0 4px;
+    color: #1e2749;
+    font-weight: 700;
+    font-style: italic;
+  }
+  .result-body::before { content: open-quote; }
+  .result-body::after { content: close-quote; }
+  .footer-note { color: #5b6499; font-size: 0.78rem; margin-top: 20px; }
+  .spinner {
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 2px solid #dbe4ff;
+    border-top-color: #3949ab;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="icon">✨</div>
+    <h1>Motivational Quote Generator</h1>
+    <p class="subtitle">Describe a struggle or goal, get a short motivational quote made just for it. 100% on-device.</p>
+
+    <div class="card">
+      <textarea id="mainInput" placeholder="e.g. I keep procrastinating on my thesis and the deadline is in two weeks"></textarea>
+      <button class="action" id="generateBtn">Get My Quote</button>
+      <div class="status" id="status"></div>
+      <div id="resultBox"></div>
+    </div>
+
+    <p class="footer-note">Everything runs locally on your machine. No text ever leaves this device.</p>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    const mainInput = document.getElementById('mainInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const status = document.getElementById('status');
+    const resultBox = document.getElementById('resultBox');
+
+    async function generate() {
+      const value = mainInput.value.trim();
+      if (!value) return;
+      generateBtn.disabled = true;
+      resultBox.innerHTML = '';
+      status.innerHTML = '<span class="spinner"></span>Finding the right words...';
+
+      try {
+        const res = await fetch('/api/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ situation: value }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        status.textContent = '';
+        resultBox.innerHTML = `<div class="result-body">${escapeHtml(data.quote)}</div>`;
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    generateBtn.addEventListener('click', generate);
+    mainInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generate(); }
+    });
+  </script>
+</body>
+</html>
